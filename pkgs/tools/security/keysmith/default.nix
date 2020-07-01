@@ -1,28 +1,31 @@
 { lib
 , mkDerivation
-, fetchFromGitHub
+, makeWrapper
+, fetchurl
 , cmake
 , extra-cmake-modules
 , qtbase
 , qtquickcontrols2
+, qtdeclarative
+, qtgraphicaleffects
 , kirigami2
 , oathToolkit
+, ki18n
+, libsodium
 }:
 mkDerivation rec {
 
   pname = "keysmith";
-  version = "0.1";
+  version = "0.2";
 
-  src = fetchFromGitHub {
-    owner = "KDE";
-    repo = "keysmith";
-    rev = "v${version}";
-    sha256 = "15fzf0bvarivm32zqa5w71mscpxdac64ykiawc5hx6kplz93bsgx";
+  src = fetchurl {
+    url = "https://github.com/KDE/keysmith/archive/v${version}.tar.gz";
+    sha256 = "sha256:0yzs6p3fkpqyl35x4rq0mdgf3hggl1f1zrsal05j4jc0wvg4cd3q";
   };
 
-  nativeBuildInputs = [ cmake extra-cmake-modules ];
+  nativeBuildInputs = [ cmake extra-cmake-modules makeWrapper ];
 
-  buildInputs = [ oathToolkit kirigami2 qtquickcontrols2 qtbase ];
+  buildInputs = [ libsodium ki18n kirigami2 qtquickcontrols2 qtbase ];
 
   meta = with lib; {
     description = "OTP client for Plasma Mobile and Desktop";
