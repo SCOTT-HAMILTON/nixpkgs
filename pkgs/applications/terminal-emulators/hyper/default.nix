@@ -1,4 +1,5 @@
-{ stdenv, lib, fetchurl, dpkg, atk, glib, pango, gdk-pixbuf, gnome2, gtk2, cairo
+{ stdenv, lib, fetchurl, autoPatchelfHook
+, dpkg, atk, glib, pango, gdk-pixbuf, gnome2, gtk2, gtk, cairo
 , freetype, fontconfig, dbus, libXi, libXcursor, libXdamage, libXrandr
 , libXcomposite, libXext, libXfixes, libXrender, libX11, libXtst, libXScrnSaver
 , libxcb, nss, nspr, alsaLib, cups, expat, udev, libpulseaudio }:
@@ -17,7 +18,17 @@ stdenv.mkDerivation rec {
     url = "https://github.com/zeit/hyper/releases/download/${version}/hyper_${version}_amd64.deb";
     sha256 = "0fv4wv5f8nc739bna83qxmgrvvbyq4w9ch764q2f12wjygrz336p";
   };
-  buildInputs = [ dpkg ];
+  nativeBuildInputs = [ autoPatchelfHook ];
+  buildInputs = [
+    dpkg
+    alsaLib
+    glib
+    gtk
+    libXScrnSaver
+    libXtst
+    nspr
+    nss
+  ];
   unpackPhase = ''
     mkdir pkg
     dpkg-deb -x $src pkg

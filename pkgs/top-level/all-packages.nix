@@ -717,7 +717,9 @@ in
 
   havoc = callPackage ../applications/terminal-emulators/havoc { };
 
-  hyper = callPackage ../applications/terminal-emulators/hyper { };
+  hyper = callPackage ../applications/terminal-emulators/hyper {
+    inherit (gnome3) gtk;
+  };
 
   iterm2 = callPackage ../applications/terminal-emulators/iterm2 {};
 
