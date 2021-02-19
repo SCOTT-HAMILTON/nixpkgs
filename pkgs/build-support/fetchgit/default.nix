@@ -1,4 +1,4 @@
-{lib, stdenvNoCC, git, git-lfs, cacert}: let
+{lib, stdenvNoCC, git, git-lfs, subversion, cacert}: let
   urlToName = url: rev: let
     inherit (lib) removeSuffix splitString last;
     base = last (splitString ":" (baseNameOf (removeSuffix "/" url)));
@@ -14,6 +14,7 @@
 in
 { url, rev ? "HEAD", md5 ? "", sha256 ? "", leaveDotGit ? deepClone
 , fetchSubmodules ? true, deepClone ? false
+, sparseCheckout ? null
 , branchName ? null
 , name ? urlToName url rev
 , # Shell code executed after the file has been fetched
@@ -55,14 +56,14 @@ stdenvNoCC.mkDerivation {
   builder = ./builder.sh;
   fetcher = ./nix-prefetch-git;  # This must be a string to ensure it's called with bash.
 
-  nativeBuildInputs = [ git ]
+  nativeBuildInputs = [ git subversion ]
     ++ lib.optionals fetchLFS [ git-lfs ];
 
   outputHashAlgo = "sha256";
   outputHashMode = "recursive";
   outputHash = sha256;
 
-  inherit url rev leaveDotGit fetchLFS fetchSubmodules deepClone branchName postFetch;
+  inherit url rev leaveDotGit fetchLFS fetchSubmodules sparseCheckout deepClone branchName postFetch;
 
   GIT_SSL_CAINFO = "${cacert}/etc/ssl/certs/ca-bundle.crt";
 
