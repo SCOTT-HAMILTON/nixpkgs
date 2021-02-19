@@ -1,0 +1,563 @@
+diff --color -ur a/calendar.c b/calendar.c
+--- a/calendar.c	2021-02-19 19:35:26.606229041 +0100
++++ b/calendar.c	2021-02-19 19:40:35.665226516 +0100
+@@ -35,7 +35,6 @@
+ #include <err.h>
+ #include <errno.h>
+ #include <locale.h>
+-#include <login_cap.h>
+ #include <pwd.h>
+ #include <signal.h>
+ #include <stdio.h>
+@@ -89,7 +88,7 @@
+ 			break;
+ 
+ 		case 'f': /* other calendar file */
+-		        calendarFile = optarg;
++				calendarFile = optarg;
+ 			break;
+ 
+ 		case 't': /* other date, undocumented, for tests */
+@@ -98,16 +97,20 @@
+ 			break;
+ 
+ 		case 'A': /* days after current date */
+-			f_dayAfter = strtonum(optarg, 0, INT_MAX, &errstr);
+-			if (errstr)
+-				errx(1, "-A %s: %s", optarg, errstr);
++			f_dayAfter = strtoll(optarg, NULL, 10);
++			if (errno == ERANGE && (f_dayAfter == LLONG_MIN || f_dayBefore == LLONG_MAX))
++				errx(1, "-A %s: %s", optarg, strerror(errno));
++			else if (f_dayAfter < 0 || f_dayAfter > INT_MAX)
++				errx(1, "-A %s: %s out of range", optarg, strerror(errno));
+ 			f_Setday = 1;
+ 			break;
+ 
+ 		case 'B': /* days before current date */
+-			f_dayBefore = strtonum(optarg, 0, INT_MAX, &errstr);
+-			if (errstr)
+-				errx(1, "-B %s: %s", optarg, errstr);
++			f_dayBefore = strtoll(optarg, NULL, 10);
++			if (errno == ERANGE && (f_dayBefore == LLONG_MIN || f_dayBefore == LLONG_MAX))
++				errx(1, "-B %s: %s", optarg, strerror(errno));
++			else if (f_dayBefore < 0 || f_dayBefore > INT_MAX)
++				errx(1, "-B %s: %s out of range", optarg, strerror(errno));
+ 			if (f_dayBefore != 0)
+ 				f_Setday = 1;
+ 			break;
+@@ -125,18 +128,9 @@
+ 	if (argc)
+ 		usage();
+ 
+-	if (doall) {
+-		if (pledge("stdio rpath tmppath fattr getpw id proc exec", NULL)
+-		    == -1)
+-			err(1, "pledge");
+-	} else {
+-		if (pledge("stdio rpath proc exec", NULL) == -1)
+-			err(1, "pledge");
+-	}
+-
+ 	/* use current time */
+ 	if (f_time <= 0)
+-	    (void)time(&f_time);
++		(void)time(&f_time);
+ 
+ 	if (f_dayBefore) {
+ 		/* Move back in time and only look forwards */
+@@ -181,7 +175,7 @@
+ 						continue;
+ 				}
+ 				if (stat(calendarNoMail, &sbuf) == 0 ||
+-				    stat(calendarFile, &sbuf) != 0)
++					stat(calendarFile, &sbuf) != 0)
+ 					continue;
+ 			}
+ 			sleeptime = USERTIMEOUT;
+@@ -192,16 +186,12 @@
+ 			case 0:	/* child */
+ 				(void)setpgid(getpid(), getpid());
+ 				(void)setlocale(LC_ALL, "");
+-				if (setusercontext(NULL, pw, pw->pw_uid,
+-				    LOGIN_SETALL ^ LOGIN_SETLOGIN))
+-					err(1, "unable to set user context (uid %u)",
+-					    pw->pw_uid);
+ 				if (acstat) {
+ 					if (chdir(pw->pw_dir) ||
+-					    stat(calendarFile, &sbuf) != 0 ||
+-					    chdir(calendarHome) ||
+-					    stat(calendarNoMail, &sbuf) == 0 ||
+-					    stat(calendarFile, &sbuf) != 0)
++						stat(calendarFile, &sbuf) != 0 ||
++						chdir(calendarHome) ||
++						stat(calendarNoMail, &sbuf) == 0 ||
++						stat(calendarFile, &sbuf) != 0)
+ 						exit(0);
+ 				}
+ 				cal();
+@@ -244,8 +234,8 @@
+ 			}
+ 			if (time(NULL) - t >= SECSPERDAY)
+ 				errx(2, "'calendar -a' took more than a day; "
+-				    "stopped at uid %u",
+-				    pw->pw_uid);
++					"stopped at uid %u",
++					pw->pw_uid);
+ 		}
+ 		for (;;) {
+ 			deadkid = waitpid(-1, &kidstat, WNOHANG);
+@@ -255,7 +245,7 @@
+ 		}
+ 		if (runningkids)
+ 			warnx("%d child processes still running when "
+-			    "'calendar -a' finished", runningkids);
++				"'calendar -a' finished", runningkids);
+ 	} else if ((caldir = getenv("CALENDAR_DIR")) != NULL) {
+ 		if(!chdir(caldir))
+ 			cal();
+@@ -270,8 +260,8 @@
+ usage(void)
+ {
+ 	(void)fprintf(stderr,
+-	    "usage: calendar [-abw] [-A num] [-B num] [-f calendarfile] "
+-	    "[-t [[[cc]yy]mm]dd]\n");
++		"usage: calendar [-abw] [-A num] [-B num] [-f calendarfile] "
++		"[-t [[[cc]yy]mm]dd]\n");
+ 	exit(1);
+ }
+ 
+diff --color -ur a/calendar.h b/calendar.h
+--- a/calendar.h	2021-02-19 19:35:26.606229041 +0100
++++ b/calendar.h	2021-02-19 19:53:06.501771979 +0100
+@@ -29,6 +29,7 @@
+  * SUCH DAMAGE.
+  */
+ 
++#include <sys/types.h>
+ 
+ extern struct passwd *pw;
+ extern int doall;
+@@ -95,8 +96,8 @@
+ #define	F_ISDAY		0x02 /* day of week (Sun, Mon, ...) */
+ /*#define	F_ISDAYVAR	0x04  variables day of week, like SundayLast */
+ #define	F_SPECIAL	0x08 /* Events that occur once a year but don't track
+-			      * calendar time--e.g.  Easter or easter depending
+-			      * days */
++				  * calendar time--e.g.  Easter or easter depending
++				  * days */
+ 
+ #define	SECSPERDAY	(24 * 60 * 60)
+ #define	isleap(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
+@@ -116,7 +117,7 @@
+ 
+ /* calendars */
+ extern enum calendars { GREGORIAN = 0, JULIAN, LUNAR } calendar;
+-extern u_long julian;
++extern unsigned long julian;
+ 
+ #define NUMEV 3	/* Total number of such special events */
+ extern struct specialev spev[NUMEV];
+diff --color -ur a/day.c b/day.c
+--- a/day.c	2021-02-19 19:35:26.609229109 +0100
++++ b/day.c	2021-02-19 19:52:29.427175037 +0100
+@@ -81,7 +81,7 @@
+ fill_print_date(struct match *m, struct tm *tm)
+ {
+ 	if (strftime(m->print_date, sizeof(m->print_date),
+-	    daynames ? "%a %b %d" : "%b %d", tm) == 0)
++		daynames ? "%a %b %d" : "%b %d", tm) == 0)
+ 		m->print_date[sizeof(m->print_date) - 1] = '\0';
+ }
+ 
+@@ -160,7 +160,7 @@
+ 	tp->tm_isdst = 0;
+ 	tp->tm_hour = 12;
+ 	*now = mktime(tp);
+-	if (isleap(tp->tm_year + 1900))
++	if (__isleap(tp->tm_year + 1900))
+ 		cumdays = daytab[1];
+ 	else
+ 		cumdays = daytab[0];
+@@ -226,7 +226,7 @@
+ 
+ #if DEBUG
+ 	printf("Mktime: %d %lld %d %s\n", (int)mktime(&tm), (long long)t, len,
+-	    asctime(&tm));
++		asctime(&tm));
+ #endif
+ 	return(mktime(&tm));
+ }
+@@ -288,8 +288,10 @@
+ 		return (NULL);
+ 
+ 	/* adjust bodun rate */
+-	if (bodun && !bodun_always)
+-		bodun = !arc4random_uniform(3);
++	if (bodun && !bodun_always) {
++		srandom(3);
++		bodun = random();
++	}
+ 
+ 	/* Easter or Easter depending days */
+ 	if (flags & F_SPECIAL)
+@@ -405,9 +407,9 @@
+ 	} else
+ 	/* Check for silliness.  Note we still catch Feb 29 */
+ 		if (!(flags & F_SPECIAL) &&
+-		    (day > (cumdays[month + 1] - cumdays[month]) || day < 1)) {
++			(day > (cumdays[month + 1] - cumdays[month]) || day < 1)) {
+ 			if (!((month == 2 && day == 29) ||
+-			    (interval == MONTHLY && day <= 31)))
++				(interval == MONTHLY && day <= 31)))
+ 				return (NULL);
+ 		}
+ 
+@@ -435,17 +437,17 @@
+ 			 */
+ 				if (tp->tm_yday > 300 && tmtmp.tm_mon <= 1)
+ 					variable_weekday(&vwd, tmtmp.tm_mon + 1,
+-					    tmtmp.tm_year + 1900 + 1);
++						tmtmp.tm_year + 1900 + 1);
+ 				else
+ 					variable_weekday(&vwd, tmtmp.tm_mon + 1,
+-					    tmtmp.tm_year + 1900);
++						tmtmp.tm_year + 1900);
+ 				day = cumdays[tmtmp.tm_mon + 1] + vwd;
+ 				tmtmp.tm_mday = vwd;
+ 			}
+ 			v2 = day - tp->tm_yday;
+ 			if ((v2 > v1) || (v2 < 0)) {
+-				if ((v2 += isleap(tp->tm_year + 1900) ? 366 : 365)
+-				    <= v1)
++				if ((v2 += __isleap(tp->tm_year + 1900) ? 366 : 365)
++					<= v1)
+ 					tmtmp.tm_year++;
+ 				else if(!bodun || (day - tp->tm_yday) != -1)
+ 					return(NULL);
+@@ -515,7 +517,7 @@
+ 				if (vwd) {
+ 					v1 = vwd;
+ 					variable_weekday(&v1, tmtmp.tm_mon + 1,
+-					    tmtmp.tm_year + 1900);
++						tmtmp.tm_year + 1900);
+ 					tmtmp.tm_mday = v1;
+ 				} else
+ 					tmtmp.tm_mday = dayp;
+@@ -526,11 +528,11 @@
+ 				if (flags & F_SPECIAL) {
+ 					tmtmp.tm_mon = 0;	/* Gee, mktime() is nice */
+ 					tmtmp.tm_mday = spev[v1].getev(tmtmp.tm_year +
+-					    1900) + vwd;
++						1900) + vwd;
+ 				} else if (vwd) {
+ 					v1 = vwd;
+ 					variable_weekday(&v1, tmtmp.tm_mon + 1,
+-					    tmtmp.tm_year + 1900);
++						tmtmp.tm_year + 1900);
+ 					tmtmp.tm_mday = v1;
+ 				} else {
+ 				/* Need the following to keep Feb 29 from
+@@ -546,12 +548,12 @@
+ 			else {
+ 				tdiff = difftime(ttmp, f_time)/ SECSPERDAY;
+ 				if (tdiff <= offset + f_dayAfter ||
+-				    (bodun && tdiff == -1)) {
++					(bodun && tdiff == -1)) {
+ 					if (((tmtmp.tm_mon == month) ||
+-					     (flags & F_SPECIAL) ||
+-					     (interval == WEEKLY)) &&
+-					    (tdiff >=  0 ||
+-					    (bodun && tdiff == -1))) {
++						 (flags & F_SPECIAL) ||
++						 (interval == WEEKLY)) &&
++						(tdiff >=  0 ||
++						(bodun && tdiff == -1))) {
+ 					if ((tmp = malloc(sizeof(struct match))) == NULL)
+ 						err(1, NULL);
+ 					tmp->when = ttmp;
+@@ -632,8 +634,8 @@
+ 	switch(*(s + offset - 2)) {
+ 	case '-':
+ 	case '+':
+-	    return(atoi(s + offset - 2));
+-	    break;
++		return(atoi(s + offset - 2));
++		break;
+ 	}
+ 
+ 	/*
+@@ -642,15 +644,15 @@
+ 
+ 	/* last */
+ 	if      (offset > 4 && !strcasecmp(s + offset - 4, "last"))
+-	    return(-1);
++		return(-1);
+ 	else if (offset > 5 && !strcasecmp(s + offset - 5, "first"))
+-	    return(+1);
++		return(+1);
+ 	else if (offset > 6 && !strcasecmp(s + offset - 6, "second"))
+-	    return(+2);
++		return(+2);
+ 	else if (offset > 5 && !strcasecmp(s + offset - 5, "third"))
+-	    return(+3);
++		return(+3);
+ 	else if (offset > 6 && !strcasecmp(s + offset - 6, "fourth"))
+-	    return(+4);
++		return(+4);
+ 
+ 	/* no offset detected */
+ 	return(0);
+@@ -674,7 +676,7 @@
+ 	int *cumdays;
+ 	int day1;
+ 
+-	if (isleap(year))
++	if (__isleap(year))
+ 		cumdays = daytab[1];
+ 	else
+ 		cumdays = daytab[0];
+@@ -689,7 +691,7 @@
+ 
+ 		/* and subtract enough days */
+ 		*day = cumdays[month + 1] - cumdays[month] +
+-		    (v1 + 1) * 7 - (v2 - *day + 7) % 7;
++			(v1 + 1) * 7 - (v2 - *day + 7) % 7;
+ #if DEBUG
+ 		fprintf(stderr, "\nMonth %d ends on weekday %d\n", month, v2);
+ #endif
+diff --color -ur a/io.c b/io.c
+--- a/io.c	2021-02-19 19:35:26.609229109 +0100
++++ b/io.c	2021-02-19 19:54:24.728070926 +0100
+@@ -67,7 +67,7 @@
+ cal(void)
+ {
+ 	int ch, l, i, bodun = 0, bodun_maybe = 0, var, printing;
+-	struct event *events, *cur_evt, *ev1, *tmp;
++	struct event *events = NULL, *cur_evt = NULL, *ev1 = NULL, *tmp = NULL;
+ 	char buf[2048 + 1], *prefix = NULL, *p;
+ 	struct match *m;
+ 	FILE *fp;
+@@ -90,8 +90,8 @@
+ 			(void) setlocale(LC_ALL, buf + 5);
+ 			setnnames();
+ 			if (!strcmp(buf + 5, "ru_RU.UTF-8") ||
+-			    !strcmp(buf + 5, "uk_UA.UTF-8") ||
+-			    !strcmp(buf + 5, "by_BY.UTF-8")) {
++				!strcmp(buf + 5, "uk_UA.UTF-8") ||
++				!strcmp(buf + 5, "by_BY.UTF-8")) {
+ 				bodun_maybe++;
+ 				bodun = 0;
+ 				free(prefix);
+@@ -111,7 +111,7 @@
+ 				if (buf[0] == '\0' || *ep != '\0')
+ 					julian = 13;
+ 				if ((errno == ERANGE && julian == ULONG_MAX) ||
+-				    julian > 14)
++					julian > 14)
+ 					errx(1, "Julian calendar offset is too large");
+ 			} else if (!strcasecmp(buf + 9, "gregorian"))
+ 				calendar = GREGORIAN;
+@@ -128,9 +128,9 @@
+ 		if ((p = strchr(buf, '='))) {
+ 			for (i = 0; i < NUMEV; i++) {
+ 				if (strncasecmp(buf, spev[i].name,
+-				    spev[i].nlen) == 0 &&
+-				    (p - buf == spev[i].nlen) &&
+-				    buf[spev[i].nlen + 1]) {
++					spev[i].nlen) == 0 &&
++					(p - buf == spev[i].nlen) &&
++					buf[spev[i].nlen + 1]) {
+ 					p++;
+ 					free(spev[i].uname);
+ 					if ((spev[i].uname = strdup(p)) == NULL)
+@@ -165,19 +165,19 @@
+ 
+ 					cur_evt->when = m->when;
+ 					snprintf(cur_evt->print_date,
+-					    sizeof(cur_evt->print_date), "%s%c",
+-					    m->print_date, (var + m->var) ? '*' : ' ');
++						sizeof(cur_evt->print_date), "%s%c",
++						m->print_date, (var + m->var) ? '*' : ' ');
+ 					if (ev1) {
+ 						cur_evt->desc = ev1->desc;
+ 						cur_evt->ldesc = NULL;
+ 					} else {
+ 						if (m->bodun && prefix) {
+ 							if (asprintf(&cur_evt->ldesc,
+-							    "\t%s %s", prefix,
+-							    p + 1) == -1)
++								"\t%s %s", prefix,
++								p + 1) == -1)
+ 								err(1, NULL);
+ 						} else if ((cur_evt->ldesc =
+-						    strdup(p)) == NULL)
++							strdup(p)) == NULL)
+ 							err(1, NULL);
+ 						cur_evt->desc = &(cur_evt->ldesc);
+ 						ev1 = cur_evt;
+@@ -190,7 +190,7 @@
+ 			}
+ 		} else if (printing) {
+ 			if (asprintf(&p, "%s\n%s", ev1->ldesc,
+-			    buf) == -1)
++				buf) == -1)
+ 				err(1, NULL);
+ 			free(ev1->ldesc);
+ 			ev1->ldesc = p;
+@@ -218,7 +218,7 @@
+ 	char *start, savech;
+ 
+ 	for (; !isdigit((unsigned char)*p) && !isalpha((unsigned char)*p) &&
+-	    *p != '*' && *p != '\t'; ++p)
++		*p != '*' && *p != '\t'; ++p)
+ 		;
+ 	if (*p == '*') {			/* `*' is every month */
+ 		*flags |= F_ISMONTH;
+@@ -228,7 +228,7 @@
+ 	if (isdigit((unsigned char)*p)) {
+ 		val = strtol(p, &p, 10);	/* if 0, it's failure */
+ 		for (; !isdigit((unsigned char)*p) &&
+-		    !isalpha((unsigned char)*p) && *p != '*'; ++p)
++			!isalpha((unsigned char)*p) && *p != '*'; ++p)
+ 			;
+ 		*endp = p;
+ 		return (val);
+@@ -270,7 +270,7 @@
+ 				val = i + 1;
+ 				i = NUMEV + 1;
+ 			} else if (spev[i].uname != NULL &&
+-			    strncasecmp(start, spev[i].uname, spev[i].ulen) == 0) {
++				strncasecmp(start, spev[i].uname, spev[i].ulen) == 0) {
+ 				start += spev[i].ulen;
+ 				val = i + 1;
+ 				i = NUMEV + 1;
+@@ -282,8 +282,8 @@
+ 			switch (*start) {
+ 			case '-':
+ 			case '+':
+-				var = strtonum(start + 1, 0, 365, &errstr);
+-				if (errstr)
++				var = strtoll(start + 1, NULL, 10);
++				if ((errno == ERANGE && (var == LLONG_MIN || var == LLONG_MAX)) || (var < 0 || var > 365))
+ 					return (0); /* Someone is just being silly */
+ 				if (*start == '-')
+ 					var = -var;
+@@ -303,7 +303,7 @@
+ 		}
+ 	}
+ 	for (*p = savech; !isdigit((unsigned char)*p) &&
+-	    !isalpha((unsigned char)*p) && *p != '*' && *p != '\t'; ++p)
++		!isalpha((unsigned char)*p) && *p != '*' && *p != '\t'; ++p)
+ 		;
+ 	*endp = p;
+ 	return (val);
+@@ -318,16 +318,16 @@
+ 
+ 	/* open up calendar file as stdin */
+ 	if ((fdin = open(calendarFile, O_RDONLY)) == -1 ||
+-	    fstat(fdin, &st) == -1 || !S_ISREG(st.st_mode)) {
++		fstat(fdin, &st) == -1 || !S_ISREG(st.st_mode)) {
+ 		if (!doall) {
+ 			char *home = getenv("HOME");
+ 			if (home == NULL || *home == '\0')
+ 				errx(1, "cannot get home directory");
+ 			if (!(chdir(home) == 0 &&
+-			    chdir(calendarHome) == 0 &&
+-			    (fdin = open(calendarFile, O_RDONLY)) != -1))
++				chdir(calendarHome) == 0 &&
++				(fdin = open(calendarFile, O_RDONLY)) != -1))
+ 				errx(1, "no calendar file: \"%s\" or \"~/%s/%s\"",
+-				    calendarFile, calendarHome, calendarFile);
++					calendarFile, calendarHome, calendarFile);
+ 		}
+ 	}
+ 
+@@ -362,7 +362,7 @@
+ 			(void)close(fderr);
+ 		}
+ 		execl(_PATH_CPP, "cpp", "-traditional", "-undef", "-U__GNUC__",
+-		    "-P", "-I.", _PATH_INCLUDE, (char *)NULL);
++			"-P", "-I.", _PATH_INCLUDE, (char *)NULL);
+ 		warn(_PATH_CPP);
+ 		_exit(1);
+ 	}
+@@ -408,7 +408,7 @@
+ 		}
+ 		(void)close(pdes[1]);
+ 		execl(_PATH_SENDMAIL, "sendmail", "-i", "-t", "-F",
+-		    "\"Reminder Service\"", (char *)NULL);
++			"\"Reminder Service\"", (char *)NULL);
+ 		warn(_PATH_SENDMAIL);
+ 		_exit(1);
+ 	}
+@@ -441,7 +441,7 @@
+ 		tmp = *head;
+ 		tmp2 = NULL;
+ 		while (tmp->next &&
+-		    tmp->when <= cur_evt->when) {
++			tmp->when <= cur_evt->when) {
+ 			tmp2 = tmp;
+ 			tmp = tmp->next;
+ 		}
+diff --color -ur a/ostern.c b/ostern.c
+--- a/ostern.c	2021-02-19 19:35:26.609229109 +0100
++++ b/ostern.c	2021-02-19 19:54:37.653290284 +0100
+@@ -58,7 +58,7 @@
+ 	e_p = e_p + 1;
+ 
+ 	e_q = 31 + 28 + e_p;
+-	if (isleap(year))
++	if (__isleap(year))
+ 		e_q++;
+ 
+ 	if (e_n == 4)
+diff --color -ur a/paskha.c b/paskha.c
+--- a/paskha.c	2021-02-19 19:35:26.609229109 +0100
++++ b/paskha.c	2021-02-19 19:55:18.749995924 +0100
+@@ -27,6 +27,7 @@
+  */
+ 
+ #include <stdio.h>
++#include <time.h>
+ 
+ #include "calendar.h"
+ 
+@@ -47,7 +48,7 @@
+ 	d = (19*a + x) % 30;
+ 	e = (2*b + 4*c + 6*d + y) % 7;
+ 	cumdays = 31 + 28;
+-	if (isleap(R))
++	if (__isleap(R))
+ 		cumdays++;
+ 	return ((cumdays + 22) + (d + e) + 13);
+ }
+diff --color -ur a/pathnames.h b/pathnames.h
+--- a/pathnames.h	2021-02-19 19:35:26.610229131 +0100
++++ b/pathnames.h	2021-02-19 19:56:21.129089047 +0100
+@@ -33,7 +33,7 @@
+ 
+ #include <paths.h>
+ 
+-#define	_PATH_CPP	"/usr/libexec/tradcpp"
++#define	_PATH_CPP	"/usr/bin/cpp"
+ 
+ 			/* XXX -- fix when cpp parses arguments rationally */
+ #define	_PATH_INCLUDE	"-I/usr/share/calendar"
+diff --color -ur a/pesach.c b/pesach.c
+--- a/pesach.c	2021-02-19 19:35:26.610229131 +0100
++++ b/pesach.c	2021-02-19 19:57:01.312806036 +0100
+@@ -18,6 +18,7 @@
+  */
+ 
+ #include <stdio.h>
++#include <time.h>
+ 
+ #include "calendar.h"
+ 
+@@ -61,5 +62,5 @@
+ 	if (R > 1582)
+ 		cumdays += R / 100 - R /400 - 2;
+ 
+-	return (31 + 28 + cumdays + (isleap(R)? 1 : 0));
++	return (31 + 28 + cumdays + (__isleap(R)? 1 : 0));
+ }

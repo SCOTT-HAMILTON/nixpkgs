@@ -19826,6 +19826,8 @@ in
 
   openpam = callPackage ../development/libraries/openpam { };
 
+  openbsd-calendar = callPackage ../tools/misc/openbsd-calendar { };
+
   openbsm = callPackage ../development/libraries/openbsm { };
 
   pagemon = callPackage ../os-specific/linux/pagemon { };
