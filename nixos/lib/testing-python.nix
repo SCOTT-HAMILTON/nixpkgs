@@ -59,7 +59,9 @@ rec {
     stdenv.mkDerivation {
       name = "vm-test-run-${driver.testName}";
 
-      requiredSystemFeatures = [ "kvm" "nixos-test" ];
+      requiredSystemFeatures = 
+        lib.optional (!stdenv.isDarwin) [ "kvm" ] ++
+                                        [ "nixos-test" ];
 
       buildCommand =
         ''

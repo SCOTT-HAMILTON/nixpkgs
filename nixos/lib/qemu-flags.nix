@@ -27,6 +27,6 @@ rec {
     aarch64-linux = "${qemuPkg}/bin/qemu-system-aarch64 -enable-kvm -machine virt,gic-version=host -cpu host";
     powerpc64le-linux = "${qemuPkg}/bin/qemu-system-ppc64 -machine powernv";
     powerpc64-linux = "${qemuPkg}/bin/qemu-system-ppc64 -machine powernv";
-    x86_64-darwin = "${qemuPkg}/bin/qemu-kvm -cpu max";
+    x86_64-darwin = "${qemuPkg}/bin/qemu-kvm -cpu max -enable-hax";
   }.${pkgs.stdenv.hostPlatform.system} or "${qemuPkg}/bin/qemu-kvm";
 }
