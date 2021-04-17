@@ -390,6 +390,8 @@ in
 
   fetchfossil = callPackage ../build-support/fetchfossil { };
 
+  fetchftpdir = callPackage ../build-support/fetchftpdir { };
+
   fetchgit = callPackage ../build-support/fetchgit {
     git = buildPackages.gitMinimal;
     cacert = buildPackages.cacert;
