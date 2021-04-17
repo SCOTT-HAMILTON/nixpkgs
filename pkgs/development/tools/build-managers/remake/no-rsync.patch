@@ -1,0 +1,18 @@
+diff --color -ur a/maintMakefile b/maintMakefile
+--- a/maintMakefile	2021-04-17 20:10:26.883681410 +0200
++++ b/maintMakefile	2021-04-17 20:13:04.918759785 +0200
+@@ -187,12 +187,6 @@
+ 
+ .PHONY: do-po-update po-update
+ do-po-update:
+-	tmppo="/tmp/po-$(MAKE_PACKAGE)-$(MAKE_VERSION).$$$$" \
+-	  && rm -rf "$$tmppo" \
+-	  && mkdir "$$tmppo" \
+-	  && $(RSYNC) $(po_sync)  "$$tmppo" \
+-	  && cp "$$tmppo"/*.po $(top_srcdir)/po \
+-	  && rm -rf "$$tmppo"
+ 	cd po && $(MAKE) update-po
+ 	$(MAKE) po-check
+ 
+Seulement dans b: maintMakefile.orig
+Seulement dans b: maintMakefile.rej
