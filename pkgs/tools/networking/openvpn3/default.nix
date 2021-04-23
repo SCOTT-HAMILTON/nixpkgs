@@ -32,7 +32,8 @@ stdenv.mkDerivation rec {
     sha256 = "1k0vs7rghkil2rrnrh1pscsvlvyjs59a6l2bw5iz618db7aapb9f";
   };
 
-  patches = [ ./disable-selinux-build.patch ];
+  # the --disable-selinux-build option doesn't seem to work
+  # patches = [ ./disable-selinux-build.patch ];
 
   postPatch = ''
     ./update-version-m4.sh
