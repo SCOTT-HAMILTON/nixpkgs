@@ -15246,6 +15246,8 @@ in
 
   gnome-sharp = callPackage ../development/libraries/gnome-sharp { };
 
+  gnome-subtitles = callPackage ../applications/office/gnome-subtitles { };
+
   gnome-menus = callPackage ../development/libraries/gnome-menus { };
 
   elementary-cmake-modules = callPackage ../development/libraries/elementary-cmake-modules { };
