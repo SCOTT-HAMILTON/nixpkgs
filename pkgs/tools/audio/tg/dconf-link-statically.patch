@@ -1,0 +1,49 @@
+diff --color -ur a/client/meson.build b/client/meson.build
+--- a/client/meson.build	2021-07-30 12:17:35.682220435 +0200
++++ b/client/meson.build	2021-07-30 12:20:51.259683155 +0200
+@@ -35,7 +35,7 @@
+ symbol_map = join_paths(meson.current_source_dir(), 'symbol.map')
+ ldflags = cc.get_supported_link_arguments('-Wl,--version-script,@0@'.format(symbol_map))
+ 
+-libdconf = shared_library(
++libdconf = static_library(
+   'dconf',
+   sources: sources,
+   version: libversion,
+diff --color -ur a/gsettings/meson.build b/gsettings/meson.build
+--- a/gsettings/meson.build	2021-07-30 12:17:35.686219729 +0200
++++ b/gsettings/meson.build	2021-07-30 12:20:59.123294510 +0200
+@@ -6,7 +6,7 @@
+ symbol_map = join_paths(meson.current_source_dir(), 'symbol.map')
+ ldflags = cc.get_supported_link_arguments('-Wl,--version-script,@0@'.format(symbol_map))
+ 
+-libdconf_settings = shared_library(
++libdconf_settings = static_library(
+   'dconfsettings',
+   sources: 'dconfsettingsbackend.c',
+   include_directories: top_inc,
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-07-30 12:17:35.681220612 +0200
++++ b/meson.build	2021-07-30 12:18:58.062672761 +0200
+@@ -41,9 +41,9 @@
+ 
+ gio_req_version = '>= 2.25.7'
+ 
+-gio_dep = dependency('gio-2.0', version: gio_req_version)
+-gio_unix_dep = dependency('gio-unix-2.0', version: gio_req_version)
+-glib_dep = dependency('glib-2.0', version: '>= 2.44.0')
++gio_dep = dependency('gio-2.0', version: gio_req_version, static: true)
++gio_unix_dep = dependency('gio-unix-2.0', version: gio_req_version, static: true)
++glib_dep = dependency('glib-2.0', version: '>= 2.44.0', static: true)
+ 
+ gio_module_dir = gio_dep.get_pkgconfig_variable('giomoduledir', define_variable: ['libdir', dconf_libdir])
+ dbus_session_service_dir = dependency('dbus-1').get_pkgconfig_variable('session_bus_services_dir', define_variable: ['datadir', dconf_datadir])
+@@ -51,7 +51,7 @@
+ systemd_userunitdir = get_option('systemduserunitdir')
+ 
+ if systemd_userunitdir == ''
+-  systemd_dep = dependency('systemd', required: false)
++  systemd_dep = dependency('systemd', required: false, static: true)
+ 
+   if systemd_dep.found()
+     systemd_userunitdir = systemd_dep.get_pkgconfig_variable('systemduserunitdir')

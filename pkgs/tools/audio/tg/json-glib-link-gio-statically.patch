@@ -1,0 +1,12 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-07-29 16:24:27.587759277 +0200
++++ b/meson.build	2021-07-29 16:27:04.107313754 +0200
+@@ -38,7 +38,7 @@
+ # Dependencies
+ glib_req_version = '>= 2.54.0'
+ gio_dep = dependency('gio-2.0', version: glib_req_version,
+-  fallback: ['glib', 'libgio_dep'])
++  fallback: ['glib', 'libgio_dep'], static: true)
+ 
+ # Configurations
+ cc = meson.get_compiler('c')

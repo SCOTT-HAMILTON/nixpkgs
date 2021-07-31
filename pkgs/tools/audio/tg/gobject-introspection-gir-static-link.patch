@@ -1,0 +1,25 @@
+diff --color -ur a/gir/meson.build b/gir/meson.build
+--- a/gir/meson.build	2021-03-19 15:22:12.050101500 +0100
++++ b/gir/meson.build	2021-07-30 00:04:16.222646766 +0200
+@@ -177,11 +177,11 @@
+ # (if they are available) since it contains 'backup' annotations that can be
+ # out of date.
+ glib_files += files('glib-2.0.c')
+-
++libuuid_dep = dependency('uuid', required: true, static: true)
+ glib_gir = custom_target('gir-glib',
+   input: glib_files,
+   output: 'GLib-2.0.gir',
+-  depends: giscanner_pymod,
++  depends: [ giscanner_pymod, libuuid_dep ],
+   depend_files: giscanner_built_files,
+   install: true,
+   install_dir: girdir,
+@@ -190,6 +190,7 @@
+     '-DGLIB_COMPILATION',
+     '-D__G_I18N_LIB_H__',
+     '-DGETTEXT_PACKAGE=Dummy',
++	'-static',
+     '--cflags-end',
+     '@INPUT@',
+   ]

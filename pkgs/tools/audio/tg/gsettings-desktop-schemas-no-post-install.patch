@@ -1,0 +1,11 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-07-30 11:39:40.494522746 +0200
++++ b/meson.build	2021-07-30 11:47:08.788308397 +0200
+@@ -48,5 +48,5 @@
+ subdir('po')
+ 
+ # Keep this in sync with post-install.py expected arguments
+-meson.add_install_script('build-aux/meson/post-install.py',
+-                         datadir)
++# meson.add_install_script('build-aux/meson/post-install.py',
++#                          datadir)

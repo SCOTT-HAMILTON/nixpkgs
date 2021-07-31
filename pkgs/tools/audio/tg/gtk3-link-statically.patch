@@ -1,0 +1,238 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-03-12 16:41:57.000000000 +0100
++++ b/meson.build	2021-07-30 13:18:31.235888068 +0200
+@@ -357,23 +357,23 @@
+ 
+ # Dependencies
+ glib_dep       = dependency('glib-2.0', version: glib_req,
+-                            fallback : ['glib', 'libglib_dep'])
++                            fallback : ['glib', 'libglib_dep'], static: true)
+ gobject_dep    = dependency('gobject-2.0', version: glib_req,
+-                            fallback : ['glib', 'libgobject_dep'])
++                            fallback : ['glib', 'libgobject_dep'], static: true)
+ if os_win32
+   giowin32_dep = dependency('gio-windows-2.0', version: glib_req, required: win32_enabled,
+                             fallback : ['glib', 'libgio_dep'])
+ endif
+ if os_unix
+   giounix_dep  = dependency('gio-unix-2.0', version: glib_req, required: false,
+-                            fallback : ['glib', 'libgio_dep'])
++                            fallback : ['glib', 'libgio_dep'], static: true)
+ endif
+ gmodule_dep    = dependency('gmodule-2.0', version: glib_req,
+-                            fallback : ['glib', 'libgmodule_dep'])
++                            fallback : ['glib', 'libgmodule_dep'], static: true)
+ 
+ # Update when we can find depedencies in a declarative manner
+-cairo_dep      = dependency('cairo', version: cairo_req, required: cc.get_id() != 'msvc')
+-cairogobj_dep  = dependency('cairo-gobject', version: cairo_req, required: cc.get_id() != 'msvc')
++cairo_dep      = dependency('cairo', version: cairo_req, required: cc.get_id() != 'msvc', static: true)
++cairogobj_dep  = dependency('cairo-gobject', version: cairo_req, required: cc.get_id() != 'msvc', static: true)
+ 
+ # Remove when we can find depedencies in a declarative manner
+ if not cairo_dep.found() and cc.get_id() == 'msvc'
+@@ -384,7 +384,7 @@
+ 
+ if not cairo_dep.found()
+   cairo_dep      = dependency('cairo', version: cairo_req,
+-                              fallback : ['cairo', 'libcairo_dep'])
++                              fallback : ['cairo', 'libcairo_dep'], static: true)
+ endif
+ 
+ # Remove when we can find depedencies in a declarative manner
+@@ -396,20 +396,20 @@
+ 
+ if not cairogobj_dep.found()
+   cairogobj_dep  = dependency('cairo-gobject', version: cairo_req,
+-                              fallback : ['cairo', 'libcairogobject_dep'])
++                              fallback : ['cairo', 'libcairogobject_dep'], static: true)
+ endif
+ 
+ pango_dep      = dependency('pango', version: pango_req,
+-                            fallback : ['pango', 'libpango_dep'])
++                            fallback : ['pango', 'libpango_dep'], static: true)
+ fribidi_dep    = dependency('fribidi', version: fribidi_req,
+-                            fallback : ['fribidi', 'libfribidi_dep'])
++                            fallback : ['fribidi', 'libfribidi_dep'], static: true)
+ 
+ # Require PangoFT2 if on X11 or wayland
+ require_pangoft2 = wayland_enabled or x11_enabled
+ if require_pangoft2
+-  pangoft_dep    = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'])
++  pangoft_dep    = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'], static: true)
+ else
+-  pangoft_dep    = dependency('pangoft2', required: false)
++  pangoft_dep    = dependency('pangoft2', required: false, static: true)
+ endif
+ 
+ if pangoft_dep.found()
+@@ -418,7 +418,7 @@
+   # about ft2 version, so an extra check is needed.
+ 
+   # Update once Meson can have deps declared in a declarative manner
+-  ft2_dep      = dependency('freetype2', version: '>= 2.7.1', required: false)
++  ft2_dep      = dependency('freetype2', version: '>= 2.7.1', required: false, static: true)
+ 
+   if not ft2_dep.found() and cc.get_id() == 'msvc'
+     if cc.has_header('ft2build.h') and cc.has_header('freetype/ftmm.h')
+@@ -434,7 +434,7 @@
+   endif
+ 
+   if not ft2_dep.found()
+-    ft2_dep      = dependency('freetype2', version: '>= 2.7.1', fallback : ['freetype2', 'freetype_dep'])
++    ft2_dep      = dependency('freetype2', version: '>= 2.7.1', fallback : ['freetype2', 'freetype_dep'], static: true)
+   endif
+ endif
+ 
+@@ -444,19 +444,19 @@
+ endif
+ 
+ pangocairo_dep = dependency('pangocairo', version: cairo_req,
+-                            fallback : ['pango', 'libpangocairo_dep'])
++                            fallback : ['pango', 'libpangocairo_dep'], static: true)
+ pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
+-                            fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'])
++                            fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'], static: true)
+ epoxy_dep      = dependency('epoxy', version: epoxy_req,
+-                            fallback: ['libepoxy', 'libepoxy_dep'])
++                            fallback: ['libepoxy', 'libepoxy_dep'], static: true)
+ atk_dep        = dependency('atk', version: atk_req,
+-                            fallback : ['atk', 'libatk_dep'])
++                            fallback : ['atk', 'libatk_dep'], static: true)
+ 
+ # Update once Meson can have deps declared in a declarative manner or can
+ # find deps properly with CMake again
+-harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false)
+-xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled)
+-iso_codes_dep  = dependency('iso-codes', required: false)
++harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false, static: true)
++xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled, static: true)
++iso_codes_dep  = dependency('iso-codes', required: false, static: true)
+ 
+ fontconfig_dep = [] # only used in x11 backend
+ atkbridge_dep  = [] # only used in x11 backend
+@@ -480,12 +480,12 @@
+ require_harfbuzz = wayland_enabled or x11_enabled
+ if require_harfbuzz and not harfbuzz_dep.found()
+   harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false,
+-                              fallback: ['harfbuzz', 'libharfbuzz_dep'])
++                              fallback: ['harfbuzz', 'libharfbuzz_dep'], static: true)
+ endif
+ 
+ tracker3_enabled = get_option('tracker3')
+ if tracker3_enabled
+-  tracker3_dep = dependency('tracker-sparql-3.0', required: false)
++  tracker3_dep = dependency('tracker-sparql-3.0', required: false, static: true)
+   if tracker3_dep.found()
+     cdata.set('HAVE_TRACKER3', tracker3_dep.found())
+   else
+@@ -518,7 +518,7 @@
+   cairo_backend = backend.get(0)
+   if backend_enabled
+     if cairo_found_type == 'pkgconfig'
+-      if dependency(cairo_backend, version: cairo_backend_req, required : cc.get_id() != 'msvc').found()
++      if dependency(cairo_backend, version: cairo_backend_req, required : cc.get_id() != 'msvc', static: true).found()
+         cairo_backends += cairo_backend
+       endif
+     elif cairo_found_type == 'internal'
+@@ -550,10 +550,10 @@
+ 
+ wayland_pkgs = []
+ if wayland_enabled
+-  wlclientdep    = dependency('wayland-client', version:  wayland_req)
+-  wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req)
+-  wlcursordep    = dependency('wayland-cursor', version: wayland_req)
+-  wlegldep       = dependency('wayland-egl')
++  wlclientdep    = dependency('wayland-client', version:  wayland_req, static: true)
++  wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req, static: true)
++  wlcursordep    = dependency('wayland-cursor', version: wayland_req, static: true)
++  wlegldep       = dependency('wayland-egl', static: true)
+ 
+   wayland_pkgs = [
+     'wayland-client', wayland_req,
+@@ -566,18 +566,18 @@
+ 
+ x11_pkgs = []
+ if x11_enabled
+-  xrandr_dep     = dependency('xrandr', version: '>= 1.2.99')
+-  xrandr15_dep   = dependency('xrandr', version: '>= 1.5', required: false)
+-  x11_dep        = dependency('x11')
+-  xrender_dep    = dependency('xrender')
+-  xi_dep         = dependency('xi')
+-  xext_dep       = dependency('xext')
+-  xcursor_dep    = dependency('xcursor', required: false)
+-  xdamage_dep    = dependency('xdamage', required: false)
+-  xfixes_dep     = dependency('xfixes', required: false)
+-  xcomposite_dep = dependency('xcomposite', required: false)
+-  fontconfig_dep = dependency('fontconfig', fallback: ['fontconfig', 'fontconfig_dep'])
+-  atkbridge_dep  = dependency('atk-bridge-2.0', version: at_spi2_atk_req)
++  xrandr_dep     = dependency('xrandr', version: '>= 1.2.99', static: true)
++  xrandr15_dep   = dependency('xrandr', version: '>= 1.5', required: false, static: true)
++  x11_dep        = dependency('x11', static: true)
++  xrender_dep    = dependency('xrender', static: true)
++  xi_dep         = dependency('xi', static: true)
++  xext_dep       = dependency('xext', static: true)
++  xcursor_dep    = dependency('xcursor', required: false, static: true)
++  xdamage_dep    = dependency('xdamage', required: false, static: true)
++  xfixes_dep     = dependency('xfixes', required: false, static: true)
++  xcomposite_dep = dependency('xcomposite', required: false, static: true)
++  fontconfig_dep = dependency('fontconfig', fallback: ['fontconfig', 'fontconfig_dep'], static: true)
++  atkbridge_dep  = dependency('atk-bridge-2.0', version: at_spi2_atk_req, static: true)
+ 
+   x11_pkgs = ['fontconfig', 'x11', 'xext', 'xi', 'xrandr']
+ 
+@@ -633,7 +633,7 @@
+   enable_xinerama = get_option('xinerama')
+   if enable_xinerama != 'no'
+     want_xinerama = enable_xinerama == 'yes'
+-    xinerama_dep = dependency('xinerama', required: want_xinerama)
++    xinerama_dep = dependency('xinerama', required: want_xinerama, static: true)
+     if xinerama_dep.found() and cc.has_header_symbol('X11/extensions/Xinerama.h', 'XineramaQueryExtension', dependencies: xinerama_dep)
+       cdata.set('HAVE_XFREE_XINERAMA', 1)
+       cdata.set('HAVE_XINERAMA', 1)
+@@ -771,7 +771,7 @@
+     # either not providing the subproject or disabling it entirely with
+     # --wrap-mode=nodownload or nofallback.
+     libintl_dep = dependency('', required : false,
+-                             fallback: ['proxy-libintl', 'intl_dep'])
++                             fallback: ['proxy-libintl', 'intl_dep'], static: true)
+     if libintl_dep.found()
+       cdata.set('HAVE_BIND_TEXTDOMAIN_CODESET', 1)
+     endif
+@@ -812,7 +812,7 @@
+ cloudproviders_enabled = get_option('cloudproviders')
+ cloudproviders_packages = []
+ if cloudproviders_enabled
+-  cloudproviders_dep = dependency('cloudproviders', version: cloudproviders_req, required: true)
++  cloudproviders_dep = dependency('cloudproviders', version: cloudproviders_req, required: true, static: true)
+   if cloudproviders_dep.found()
+     cloudproviders_packages += ['cloudproviders', cloudproviders_req]
+     cdata.set('HAVE_CLOUDPROVIDERS', cloudproviders_dep.found() ? 1 : false)
+@@ -823,7 +823,7 @@
+ 
+ profiler_enabled = get_option('profiler')
+ if profiler_enabled
+-  profiler_dep = dependency('sysprof-capture-3', static: true, required: true)
++  profiler_dep = dependency('sysprof-capture-3', static: true, required: true, static: true)
+   if profiler_dep.found()
+     cdata.set('HAVE_SYSPROF_CAPTURE', profiler_dep.found())
+   else
+@@ -981,12 +981,12 @@
+ install_data('m4macros/gtk-3.0.m4', install_dir: join_paths(get_option('datadir'), 'aclocal'))
+ 
+ # Keep this in sync with post-install.py expected arguments
+-meson.add_install_script('build-aux/meson/post-install.py',
+-                         gtk_api_version,
+-                         gtk_binary_version,
+-                         join_paths(gtk_prefix, get_option('bindir')),
+-                         gtk_libdir,
+-                         gtk_datadir)
++# meson.add_install_script('build-aux/meson/post-install.py',
++#                          gtk_api_version,
++#                          gtk_binary_version,
++#                          join_paths(gtk_prefix, get_option('bindir')),
++#                          gtk_libdir,
++#                          gtk_datadir)
+ 
+ if host_machine.system() != 'windows'
+   # Install Valgrind suppression files (except on Windows,

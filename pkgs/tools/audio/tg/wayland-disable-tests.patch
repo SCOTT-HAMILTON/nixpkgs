@@ -1,0 +1,12 @@
+diff -ur a/meson.build b/meson.build
+--- a/meson.build	2021-01-27 17:49:04.000000000 +0100
++++ b/meson.build	2021-07-28 13:38:44.494777853 +0200
+@@ -91,7 +91,7 @@
+ if get_option('libraries')
+ 	subdir('cursor')
+ 	subdir('egl')
+-	subdir('tests')
++	# subdir('tests')
+ 	if get_option('documentation')
+ 		subdir('doc')
+ 	endif

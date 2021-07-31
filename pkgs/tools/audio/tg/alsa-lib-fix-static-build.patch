@@ -1,0 +1,12 @@
+diff -ur a/src/control/control_empty.c b/src/control/control_empty.c
+--- a/src/control/control_empty.c	2021-06-14 12:28:44.000000000 +0200
++++ b/src/control/control_empty.c	2021-07-27 21:07:53.135460650 +0200
+@@ -30,7 +30,7 @@
+ 
+ #ifndef PIC
+ /* entry for static linking */
+-const char *_snd_module_ctl_empty = "";
++const char *_snd_module_control_empty = "";
+ #endif
+ 
+ /*! \page control_plugins

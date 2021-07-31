@@ -16547,6 +16547,8 @@ in
 
   libglvnd = callPackage ../development/libraries/libglvnd { };
 
+  libglvnd-meson = callPackage ../development/libraries/libglvnd-meson { };
+
   libgnurl = callPackage ../development/libraries/libgnurl { };
 
   libgringotts = callPackage ../development/libraries/libgringotts { };

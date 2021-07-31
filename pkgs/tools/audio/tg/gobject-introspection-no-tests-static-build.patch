@@ -1,0 +1,200 @@
+diff --color -ur a/examples/library/meson.build b/examples/library/meson.build
+--- a/examples/library/meson.build	2021-03-19 15:22:12.038101400 +0100
++++ b/examples/library/meson.build	2021-07-29 19:34:22.773584472 +0200
+@@ -5,7 +5,7 @@
+ gnome = import('gnome')
+ gobj_dep = dependency('gobject-2.0')
+ 
+-girlib = shared_library(
++girlib = static_library(
+   'gi-sample',
+   sources : libsources,
+   dependencies : [gobj_dep],
+diff --color -ur a/girepository/cmph/meson.build b/girepository/cmph/meson.build
+--- a/girepository/cmph/meson.build	2021-03-19 15:22:12.050101500 +0100
++++ b/girepository/cmph/meson.build	2021-07-29 19:18:38.909724908 +0200
+@@ -73,4 +73,4 @@
+   c_args: custom_c_args,
+ )
+ 
+-test('cmph-bdz-test', cmph_test)
++# test('cmph-bdz-test', cmph_test)
+diff --color -ur a/girepository/meson.build b/girepository/meson.build
+--- a/girepository/meson.build	2021-03-19 15:22:12.054101500 +0100
++++ b/girepository/meson.build	2021-07-29 19:34:22.779584761 +0200
+@@ -173,7 +173,7 @@
+ osx_current = lib_version_major + 1
+ lib_osx_version = [osx_current, '@0@.@1@'.format(osx_current, lib_version_minor)]
+ 
+-girepo_lib = shared_library('girepository-1.0',
++girepo_lib = static_library('girepository-1.0',
+   sources: girepo_sources,
+   include_directories : configinc,
+   c_args: gi_hidden_visibility_cflags + ['-DG_IREPOSITORY_COMPILATION'] +
+@@ -202,7 +202,7 @@
+   dependencies: girepo_gthash_dep,
+ )
+ 
+-test('gthash-test', gthash_test)
++# test('gthash-test', gthash_test)
+ 
+ if giounix_dep.found() or giowin_dep.found()
+   executable('gi-dump-types', 'gi-dump-types.c',
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-03-19 15:22:12.062101600 +0100
++++ b/meson.build	2021-07-29 19:45:42.742965671 +0200
+@@ -134,17 +134,17 @@
+ glib_version = '>= 2.58.0'
+ 
+ glib_dep = dependency('glib-2.0', version : glib_version,
+-  fallback: ['glib', 'libglib_dep'])
++  fallback: ['glib', 'libglib_dep'], static: true)
+ gobject_dep = dependency('gobject-2.0', version : glib_version,
+-  fallback: ['glib', 'libgobject_dep'])
++  fallback: ['glib', 'libgobject_dep'], static: true)
+ gio_dep = dependency('gio-2.0', version : glib_version,
+-  fallback: ['glib', 'libgio_dep'])
++  fallback: ['glib', 'libgio_dep'], static: true)
+ gmodule_dep = dependency('gmodule-2.0', version : glib_version,
+-  fallback: ['glib', 'libgmodule_dep'])
++  fallback: ['glib', 'libgmodule_dep'], static: true)
+ if host_system != 'windows'
+   giounix_dep = dependency('gio-unix-2.0', version : glib_version,
+-    fallback: ['glib', 'libgiounix_dep'])
+-  giowin_dep = dependency('', required : false)
++    fallback: ['glib', 'libgiounix_dep'], static: true)
++  giowin_dep = dependency('', required : false, static: true)
+ else
+   # Don't even try to look for gio-unix-2.0 on Windows because Meson will
+   # fruitlessly try to find it in the glib subproject even when we don't want
+@@ -155,7 +155,7 @@
+     fallback: ['glib', 'libgiowin32_dep'])
+ endif
+ libffi_dep = dependency('libffi',
+-  fallback : ['libffi', 'ffi_dep'])
++  fallback : ['libffi', 'ffi_dep'], static: true)
+ 
+ # python headers
+ cc.check_header('Python.h', dependencies: [python.dependency()], required: true)
+@@ -179,8 +179,8 @@
+     endif
+   endif
+ else
+-  cairo_dep = dependency('cairo', required: cairo_option)
+-  cairo_gobject_dep = dependency('cairo-gobject', required: cairo_option)
++  cairo_dep = dependency('cairo', required: cairo_option, static: true)
++  cairo_gobject_dep = dependency('cairo-gobject', required: cairo_option, static: true)
+ endif
+ cairo_deps_found = cairo_gobject_dep.found() and cairo_dep.found()
+ 
+@@ -225,7 +225,7 @@
+ # The tests will also run, which is not possible if they
+ # were built for a different architecture.
+ if not meson.is_cross_build()
+-    subdir('tests')
++    # subdir('tests')
+ endif
+ 
+ install_data('Makefile.introspection', install_dir: join_paths(get_option('datadir'), 'gobject-introspection-1.0'))
+diff --color -ur a/tests/meson.build b/tests/meson.build
+--- a/tests/meson.build	2021-03-19 15:22:12.066101600 +0100
++++ b/tests/meson.build	2021-07-29 19:34:22.782584906 +0200
+@@ -72,7 +72,7 @@
+   ])
+ endif
+ 
+-everything_lib = shared_library('everything-1.0',
++everything_lib = static_library('everything-1.0',
+   sources: test_everything_sources,
+   include_directories : configinc,
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+@@ -86,7 +86,7 @@
+   ])
+ endif
+ 
+-gimarshallingtests_lib = shared_library('gimarshallingtests-1.0',
++gimarshallingtests_lib = static_library('gimarshallingtests-1.0',
+   sources: test_marshalling_sources,
+   include_directories : configinc,
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+diff --color -ur a/tests/offsets/meson.build b/tests/offsets/meson.build
+--- a/tests/offsets/meson.build	2021-03-19 15:22:12.066101600 +0100
++++ b/tests/offsets/meson.build	2021-07-29 19:34:22.785585050 +0200
+@@ -3,7 +3,7 @@
+ 
+ test_offsets_inc = include_directories('.', '..')
+ 
+-test_offsets_lib = shared_library('offsets-1.0',
++test_offsets_lib = static_library('offsets-1.0',
+   sources: test_offsets_sources,
+   include_directories : [configinc, test_offsets_inc],
+   c_args: gi_hidden_visibility_cflags,
+diff --color -ur a/tests/scanner/meson.build b/tests/scanner/meson.build
+--- a/tests/scanner/meson.build	2021-03-19 15:22:12.098101900 +0100
++++ b/tests/scanner/meson.build	2021-07-29 19:34:22.788585195 +0200
+@@ -30,49 +30,49 @@
+   ])
+ endif
+ 
+-typedef_lib = shared_library('typedef-1.0',
++typedef_lib = static_library('typedef-1.0',
+   sources: ['typedefs.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gobject_dep],
+ )
+ 
+-sletter_lib = shared_library('sletter-1.0',
++sletter_lib = static_library('sletter-1.0',
+   sources: ['sletter.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gio_dep],
+ )
+ 
+-warnlib_lib = shared_library('warnlib-1.0',
++warnlib_lib = static_library('warnlib-1.0',
+   sources: ['warnlib.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gio_dep],
+ )
+ 
+-utility_lib = shared_library('utility-1.0',
++utility_lib = static_library('utility-1.0',
+   sources: ['utility.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gobject_dep],
+ )
+ 
+-gtkfrob_lib = shared_library('gtkfrob-1.0',
++gtkfrob_lib = static_library('gtkfrob-1.0',
+   sources: ['gtkfrob.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gobject_dep],
+ )
+ 
+-gettype_lib = shared_library('gettype-1.0',
++gettype_lib = static_library('gettype-1.0',
+   sources: ['gettype.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+   dependencies: [gobject_dep],
+ )
+ 
+-barapp_lib = shared_library('barapp-1.0',
++barapp_lib = static_library('barapp-1.0',
+   sources: ['barapp.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + custom_c_args,
+@@ -95,7 +95,7 @@
+   regress_c_args = ['-D_GI_DISABLE_CAIRO']
+ endif
+ 
+-regress_lib = shared_library('regress-1.0',
++regress_lib = static_library('regress-1.0',
+   sources: ['regress.c', 'annotation.c', 'foo.c', 'drawable.c'],
+   include_directories : [configinc, include_directories('..')],
+   c_args: gi_hidden_visibility_cflags + regress_c_args + custom_c_args,

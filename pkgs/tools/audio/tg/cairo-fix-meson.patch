@@ -1,0 +1,117 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-07-29 18:16:24.646436686 +0200
++++ b/meson.build	2021-07-29 18:28:30.261347985 +0200
+@@ -264,13 +264,13 @@
+     ['X11/extensions/shmstr.h', {'extra-headers': extra_headers}],
+   ]
+   deps += [x11_dep, xext_dep]
+-  res = cc.run(files('meson-cc-tests/ipc_rmid_deferred_release.c'),
+-    dependencies: [x11_dep, xext_dep],
+-    name: 'shmctl IPC_RMID allowes subsequent attaches')
+-
+-  if res.returncode() == 0
+-    conf.set('IPC_RMID_DEFERRED_RELEASE', 1)
+-  endif
++  # res = cc.run(files('meson-cc-tests/ipc_rmid_deferred_release.c'),
++  #   dependencies: [x11_dep, xext_dep],
++  #   name: 'shmctl IPC_RMID allowes subsequent attaches')
++
++  # if res.returncode() == 0
++  #   conf.set('IPC_RMID_DEFERRED_RELEASE', 1)
++  # endif
+ endif
+ 
+ if feature_conf.get('CAIRO_HAS_XLIB_SURFACE', 0) == 1
+@@ -292,7 +292,7 @@
+       'description': 'Xlib Xrender surface backend',
+       'deps': [xrender_dep],
+     }]
+-    feature_conf.set('CAIRO_HAS_XLIB_XRENDER_SURFACE', 1)
++    feature_conf.set('CAIRO_HAS_XLIB_XRENDER_SURFACE', 0)
+   endif
+ endif
+ 
+diff --color -ur a/src/meson.build b/src/meson.build
+--- a/src/meson.build	2021-07-29 18:16:24.675436839 +0200
++++ b/src/meson.build	2021-07-29 18:39:41.667517871 +0200
+@@ -294,7 +294,7 @@
+ 
+ incsrc = include_directories('.')
+ 
+-libcairo = library('cairo', cairo_sources,
++libcairo = static_library('cairo', cairo_sources,
+   dependencies: deps,
+   c_args: cairo_no_warn_c_args + pthread_c_args + ['-DHAVE_CONFIG_H'],
+   cpp_args: cairo_no_warn_c_args + pthread_c_args + ['-DHAVE_CONFIG_H'],
+diff --color -ur a/util/cairo-fdr/meson.build b/util/cairo-fdr/meson.build
+--- a/util/cairo-fdr/meson.build	2021-07-29 18:16:24.649436702 +0200
++++ b/util/cairo-fdr/meson.build	2021-07-29 18:41:28.970823585 +0200
+@@ -2,7 +2,7 @@
+   'fdr.c',
+ ]
+ 
+-libcairofdr = library('cairo-fdr', cairo_fdr_sources,
++libcairofdr = static_library('cairo-fdr', cairo_fdr_sources,
+   include_directories: [incbase, incsrc],
+   c_args: ['-DHAVE_CONFIG_H'],
+   dependencies: deps,
+diff --color -ur a/util/cairo-gobject/meson.build b/util/cairo-gobject/meson.build
+--- a/util/cairo-gobject/meson.build	2021-07-29 18:16:24.649436702 +0200
++++ b/util/cairo-gobject/meson.build	2021-07-29 18:41:28.978823401 +0200
+@@ -7,7 +7,7 @@
+   'cairo-gobject.h',
+ ]
+ 
+-libcairogobject = library('cairo-gobject', cairo_gobject_sources,
++libcairogobject = static_library('cairo-gobject', cairo_gobject_sources,
+   c_args: ['-DHAVE_CONFIG_H'],
+   include_directories: [incbase, incsrc],
+   dependencies: [glib_dep, gobject_dep],
+diff --color -ur a/util/cairo-script/meson.build b/util/cairo-script/meson.build
+--- a/util/cairo-script/meson.build	2021-07-29 18:16:24.652436718 +0200
++++ b/util/cairo-script/meson.build	2021-07-29 18:41:28.986823217 +0200
+@@ -24,7 +24,7 @@
+   'csi-trace.c',
+ ]
+ 
+-libcairoscript = library('cairo-script-interpreter',
++libcairoscript = static_library('cairo-script-interpreter',
+   cairoscript_interpreter_sources,
+   c_args: ['-DHAVE_CONFIG_H'],
+   include_directories: [incbase, incsrc],
+diff --color -ur a/util/cairo-sphinx/meson.build b/util/cairo-sphinx/meson.build
+--- a/util/cairo-sphinx/meson.build	2021-07-29 18:16:24.655436734 +0200
++++ b/util/cairo-sphinx/meson.build	2021-07-29 18:41:28.982823309 +0200
+@@ -6,7 +6,7 @@
+   'sphinx.c',
+ ]
+ 
+-libcairosphinx = library('cairo-sphinx', libcairo_sphinx_sources,
++libcairosphinx = static_library('cairo-sphinx', libcairo_sphinx_sources,
+   include_directories: [incbase, incsrc],
+   c_args: ['-DHAVE_CONFIG_H'],
+   dependencies: deps,
+diff --color -ur a/util/cairo-trace/meson.build b/util/cairo-trace/meson.build
+--- a/util/cairo-trace/meson.build	2021-07-29 18:16:24.656436739 +0200
++++ b/util/cairo-trace/meson.build	2021-07-29 18:41:28.943824205 +0200
+@@ -8,7 +8,7 @@
+ 
+ shared_lib_ext = libcairo.full_path().split('.')[-1]
+ 
+-libcairotrace = library('cairo-trace', cairo_trace_sources,
++libcairotrace = static_library('cairo-trace', cairo_trace_sources,
+   include_directories: [incbase, incsrc],
+   dependencies: deps,
+   link_args: extra_link_args,
+diff --color -ur a/util/meson.build b/util/meson.build
+--- a/util/meson.build	2021-07-29 18:16:24.648436697 +0200
++++ b/util/meson.build	2021-07-29 18:41:28.961823792 +0200
+@@ -59,7 +59,7 @@
+ endforeach
+ 
+ if cc.has_header_symbol('malloc.h', '__malloc_hook') and cc.has_header('execinfo.h')
+-  libmallocstats = library('malloc-stats', 'malloc-stats.c')
++  libmallocstats = static_library('malloc-stats', 'malloc-stats.c')
+ endif
+ 
+ # backtrace-symbols does not build

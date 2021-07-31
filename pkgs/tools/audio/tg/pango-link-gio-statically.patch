@@ -1,0 +1,12 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-07-29 18:48:27.094768300 +0200
++++ b/meson.build	2021-07-29 18:49:12.726226455 +0200
+@@ -208,7 +208,7 @@
+ gobject_dep = dependency('gobject-2.0', version: glib_req_version,
+                          fallback: ['glib', 'libgobject_dep'])
+ gio_dep = dependency('gio-2.0', version: glib_req_version,
+-                         fallback: ['glib', 'libgio_dep'])
++                         fallback: ['glib', 'libgio_dep'], static: true)
+ pango_deps += [glib_dep, gobject_dep, gio_dep]
+ 
+ fribidi_dep = dependency('fribidi', version: fribidi_req_version,

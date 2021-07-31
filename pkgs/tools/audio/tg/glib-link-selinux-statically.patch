@@ -1,0 +1,12 @@
+diff --color -ur a/meson.build b/meson.build
+--- a/meson.build	2021-06-10 20:57:57.279194400 +0200
++++ b/meson.build	2021-07-29 15:40:50.532527494 +0200
+@@ -2096,7 +2096,7 @@
+ 
+ selinux_dep = []
+ if host_system == 'linux'
+-  selinux_dep = dependency('libselinux', version: '>=2.2', required: get_option('selinux'))
++  selinux_dep = dependency('libselinux', version: '>=2.2', required: get_option('selinux'), static: true)
+ 
+   glib_conf.set('HAVE_SELINUX', selinux_dep.found())
+ endif
