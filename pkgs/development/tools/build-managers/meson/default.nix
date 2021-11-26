@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , python3
 
 , writeTextDir
@@ -15,6 +16,9 @@ python3.pkgs.buildPythonApplication rec {
     inherit pname version;
     sha256 = "19n8alcpzv6npgp27iqljkmvdmr7s2c7zm8y997j1nlvpa1cgqbj";
   };
+
+  # Needed for setup-hook
+  targetIsStatic = stdenv.targetPlatform.isStatic;
 
   patches = [
     # Upstream insists on not allowing bindir and other dir options
